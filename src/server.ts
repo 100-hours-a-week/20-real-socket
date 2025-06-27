@@ -1,8 +1,10 @@
+import * as Y from 'yjs'
 import WebSocket from 'ws'
 import http from 'http'
-import {parseCookies, setupWSConnection} from './utils'
+import {parseCookies, setContentInitializor, setupWSConnection} from './utils'
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import {getDocInfo} from "./api/getDocInfo";
 
 dotenv.config();
 
@@ -14,6 +16,17 @@ const port = 3002
 const server = http.createServer((_request, response) => {
   response.writeHead(200, { 'Content-Type': 'text/plain' })
   response.end('okay')
+})
+
+setContentInitializor(async (doc: Y.Doc, docId: string) => {
+  // docId로 API 호출
+  const res = await getDocInfo(docId)
+  const ydoc = res?.data?.ydoc
+  if (!ydoc) return;
+
+  // 디코딩 후 doc에 적용
+  const update = Uint8Array.from(atob(ydoc), char => char.charCodeAt(0));
+  Y.applyUpdate(doc, update)
 })
 
 // connection 세팅

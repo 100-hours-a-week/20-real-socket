@@ -7,19 +7,17 @@ import * as decoding from 'lib0/decoding'
 import * as map from 'lib0/map'
 import * as eventloop from 'lib0/eventloop'
 
-import { callbackHandler, isCallbackSet } from './callback'
+import { callbackHandler } from './callback'
 import { IncomingMessage } from 'http'
 import { WebSocket } from 'ws'
 
-const CALLBACK_DEBOUNCE_WAIT = parseInt(process.env.CALLBACK_DEBOUNCE_WAIT || '2000')
-const CALLBACK_DEBOUNCE_MAXWAIT = parseInt(process.env.CALLBACK_DEBOUNCE_MAXWAIT || '10000')
+const CALLBACK_DEBOUNCE_WAIT = 2000
+const CALLBACK_DEBOUNCE_MAXWAIT = 10000
 
 const debouncer = eventloop.createDebouncer(CALLBACK_DEBOUNCE_WAIT, CALLBACK_DEBOUNCE_MAXWAIT)
 
 const wsReadyStateConnecting = 0
 const wsReadyStateOpen = 1
-
-const gcEnabled = process.env.GC !== 'false' && process.env.GC !== '0'
 
 export const docs = new Map<string, WSSharedDoc>()
 
@@ -35,7 +33,7 @@ const updateHandler = (update: Uint8Array, _origin: any, doc: WSSharedDoc, _tr: 
   doc.conns.forEach((_, conn) => send(doc, conn, message))
 }
 
-let contentInitializor: (ydoc: Y.Doc) => Promise<void> = () => Promise.resolve()
+let contentInitializor: (ydoc: Y.Doc, docId: string) => Promise<void> = () => Promise.resolve()
 
 export const setContentInitializor = (f: typeof contentInitializor) => {
   contentInitializor = f
@@ -49,7 +47,7 @@ export class WSSharedDoc extends Y.Doc {
   whenInitialized: Promise<void>
 
   constructor(name: string) {
-    super({ gc: gcEnabled })
+    super({ gc: true })
     this.name = name
     this.conns = new Map()
     this.awareness = new awarenessProtocol.Awareness(this)
@@ -74,13 +72,14 @@ export class WSSharedDoc extends Y.Doc {
     this.awareness.on('update', awarenessChangeHandler)
     this.on('update', updateHandler as any)
 
-    if (isCallbackSet) {
-      this.on('update', (_update, _origin, doc) => {
-        debouncer(() => callbackHandler(doc as WSSharedDoc))
-      })
-    }
+    this.on('update', (_update, _origin, doc) => {
+      const userIds = Array.from(this.awareness.getStates().values())
+        .map(state => state.user?.id)
+        .filter((id): id is number => typeof id === 'number')
+      debouncer(() => callbackHandler(doc as WSSharedDoc, name, userIds))
+    })
 
-    this.whenInitialized = contentInitializor(this)
+    this.whenInitialized = contentInitializor(this, name)
   }
 }
 
