@@ -9,6 +9,7 @@ import {getDocInfo} from "./api/getDocInfo";
 dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET
+// noServer를 통해 upgrade를 과정으로 수동으로 처리
 const wss = new WebSocket.Server({ noServer: true })
 const host = 'localhost'
 const port = 3002
@@ -18,6 +19,7 @@ const server = http.createServer((_request, response) => {
   response.end('okay')
 })
 
+// 문서 초기 정보 init
 setContentInitializor(async (doc: Y.Doc, docId: string) => {
   // docId로 API 호출
   const res = await getDocInfo(docId)
@@ -54,7 +56,7 @@ server.on('upgrade', (request, socket, head) => {
     return;
   }
 
-  wss.handleUpgrade(request, socket, head, /** @param {any} ws */ ws => {
+  wss.handleUpgrade(request, socket, head, ws => {
     wss.emit('connection', ws, request)
   })
 })

@@ -11,7 +11,9 @@ import { callbackHandler } from './callback'
 import { IncomingMessage } from 'http'
 import { WebSocket } from 'ws'
 
+// 마지막 입력 후 2초 후 요청
 const CALLBACK_DEBOUNCE_WAIT = 2000
+// 계속 입력을 하더라도 10초가 지나면 요청
 const CALLBACK_DEBOUNCE_MAXWAIT = 10000
 
 const debouncer = eventloop.createDebouncer(CALLBACK_DEBOUNCE_WAIT, CALLBACK_DEBOUNCE_MAXWAIT)
@@ -21,7 +23,9 @@ const wsReadyStateOpen = 1
 
 export const docs = new Map<string, WSSharedDoc>()
 
+// 싱크 관련 메시지
 const messageSync = 0
+// 커서 관련 메시지
 const messageAwareness = 1
 
 // 문서 업데이트가 발생했을 때 연결된 클라이언트에게 브로드캐스트
@@ -30,9 +34,12 @@ const updateHandler = (update: Uint8Array, _origin: any, doc: WSSharedDoc, _tr: 
   encoding.writeVarUint(encoder, messageSync)
   syncProtocol.writeUpdate(encoder, update)
   const message = encoding.toUint8Array(encoder)
+
+  // 이 문서와 연결된 모든 클라이언트에게 메시지를 전송
   doc.conns.forEach((_, conn) => send(doc, conn, message))
 }
 
+// 문서 초기 로드 initializor
 let contentInitializor: (ydoc: Y.Doc, docId: string) => Promise<void> = () => Promise.resolve()
 
 export const setContentInitializor = (f: typeof contentInitializor) => {
@@ -53,6 +60,7 @@ export class WSSharedDoc extends Y.Doc {
     this.awareness = new awarenessProtocol.Awareness(this)
     this.awareness.setLocalState(null)
 
+    // 커서 변경 핸들러
     const awarenessChangeHandler = ({ added, updated, removed }: { added: number[], updated: number[], removed: number[] }, conn: any) => {
       const changedClients = added.concat(updated, removed)
       if (conn !== null) {
@@ -66,12 +74,14 @@ export class WSSharedDoc extends Y.Doc {
       encoding.writeVarUint(encoder, messageAwareness)
       encoding.writeVarUint8Array(encoder, awarenessProtocol.encodeAwarenessUpdate(this.awareness, changedClients))
       const buff = encoding.toUint8Array(encoder)
+      // 모든 클라이언트에게 broadcast
       this.conns.forEach((_, c) => send(this, c, buff))
     }
 
     this.awareness.on('update', awarenessChangeHandler)
     this.on('update', updateHandler as any)
 
+    // 문서 업데이트 시 debounce 후 콜백 호출
     this.on('update', (_update, _origin, doc) => {
       const userIds = Array.from(this.awareness.getStates().values())
         .map(state => state.user?.id)
@@ -93,12 +103,14 @@ export const getYDoc = (docname: string, gc = true): WSSharedDoc => {
   })
 }
 
+// 메시지를 받는 경우 핸들러
 const messageListener = (conn: any, doc: WSSharedDoc, message: Uint8Array) => {
   try {
     const encoder = encoding.createEncoder()
     const decoder = decoding.createDecoder(message)
     const messageType = decoding.readVarUint(decoder)
     switch (messageType) {
+      // 싱크 메시지
       case messageSync:
         encoding.writeVarUint(encoder, messageSync)
         syncProtocol.readSyncMessage(decoder, encoder, doc, conn)
@@ -106,6 +118,7 @@ const messageListener = (conn: any, doc: WSSharedDoc, message: Uint8Array) => {
           send(doc, conn, encoding.toUint8Array(encoder))
         }
         break
+      // 커서 메시지
       case messageAwareness:
         awarenessProtocol.applyAwarenessUpdate(doc.awareness, decoding.readVarUint8Array(decoder), conn)
         break
