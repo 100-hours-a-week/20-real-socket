@@ -1,8 +1,25 @@
 {
   "scripts": {
-    "start": "HOST=0.0.0.0 PORT=3002 npx y-websocket"
+    "dev": "NODE_ENV=development ts-node-dev --loader ts-node/esm src/server.ts",
+    "build": "tsc",
+    "start": "NODE_ENV=production node dist/server.js"
   },
   "dependencies": {
-    "@y/websocket-server": "^0.1.1"
+    "axios": "^1.10.0",
+    "dotenv": "^16.5.0",
+    "dotenv-flow": "^4.1.0",
+    "http": "^0.0.1-security",
+    "jsonwebtoken": "^9.0.2",
+    "lib0": "^0.2.109",
+    "ws": "^8.18.2",
+    "y-protocols": "^1.0.6",
+    "yjs": "^13.6.27"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^24.0.4",
+    "@types/ws": "^8.18.1",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.8.3"
   }
 }

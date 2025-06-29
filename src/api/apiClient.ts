@@ -1,0 +1,12 @@
+import axios from 'axios'
+import dotenvFlow from 'dotenv-flow'
+
+dotenvFlow.config()
+
+export const apiClient = axios.create({
+  baseURL: process.env.BACKEND_URL,
+  timeout: 5000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+})
