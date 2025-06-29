@@ -12,9 +12,12 @@ interface getDocInfoResponse {
 // DB에서 문서 정보를 가져오기
 export const getDocInfo = async (docId: string): Promise<BaseResponse<getDocInfoResponse> | undefined>  => {
   try {
-    return await apiClient.get(`/v2/wikis/${docId}`)
+    const res =  await apiClient.post(`/v1/wikis/${docId}`, {
+      apiKey: process.env.API_KEY
+    })
+    return res.data
   } catch (err) {
-    console.log(err)
+    console.error(err)
   }
 
 }

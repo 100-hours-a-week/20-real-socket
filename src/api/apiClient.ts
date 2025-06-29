@@ -1,7 +1,7 @@
 import axios from 'axios'
-import dotenv from "dotenv"
+import dotenvFlow from 'dotenv-flow'
 
-dotenv.config()
+dotenvFlow.config()
 
 export const apiClient = axios.create({
   baseURL: process.env.BACKEND_URL,

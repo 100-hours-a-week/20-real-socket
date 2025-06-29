@@ -9,5 +9,5 @@ export const callbackHandler = (doc: WSSharedDoc, docId: string, userIds: number
   const html = fragment.toString()
   const update = btoa(String.fromCharCode(...Y.encodeStateAsUpdate(doc)))
 
-  putWiki({id: parseInt(docId), html, ydoc: update })
+  putWiki({id: parseInt(docId), html, ydoc: update, editorsId: userIds })
 }

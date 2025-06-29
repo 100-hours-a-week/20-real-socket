@@ -3,10 +3,10 @@ import WebSocket from 'ws'
 import http from 'http'
 import {parseCookies, setContentInitializor, setupWSConnection} from './utils'
 import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
+import dotenvFlow from 'dotenv-flow'
 import {getDocInfo} from "./api/getDocInfo";
 
-dotenv.config();
+dotenvFlow.config();
 
 const JWT_SECRET = process.env.JWT_SECRET
 // noServer를 통해 upgrade를 과정으로 수동으로 처리

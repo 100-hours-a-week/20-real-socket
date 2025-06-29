@@ -5,14 +5,17 @@ export interface putWikiRequest {
   id: number;
   html: string;
   ydoc: string;
+  editorsId: number[];
 }
 
-export const putWiki = async ({ id, html, ydoc }: putWikiRequest) => {
+export const putWiki = async ({id, html, ydoc, editorsId}: putWikiRequest) => {
   try {
-    const res: BaseResponse<void> =  await apiClient.put(`/v2/wikis/${id}`, {
-      html, ydoc
+    const res: BaseResponse<void> = await apiClient.put(`/v2/wikis/${id}`, {
+      html,
+      ydoc,
+      editorsId,
+      apiKey: process.env.API_KEY
     });
-
     return res.code;
   } catch (error) {
     console.error(error)
