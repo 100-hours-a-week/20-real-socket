@@ -11,7 +11,7 @@ dotenvFlow.config();
 const JWT_SECRET = process.env.JWT_SECRET
 // noServer를 통해 upgrade를 과정으로 수동으로 처리
 const wss = new WebSocket.Server({ noServer: true })
-const host = 'localhost'
+const host = '0.0.0.0'
 const port = 3002
 
 const server = http.createServer((_request, response) => {
