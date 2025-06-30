@@ -10,7 +10,7 @@ export interface putWikiRequest {
 
 export const putWiki = async ({id, html, ydoc, editorsId}: putWikiRequest) => {
   try {
-    const res: BaseResponse<void> = await apiClient.put(`/v2/wikis/${id}`, {
+    const res: BaseResponse<void> = await apiClient.put(`/v2/auth/wikis/${id}`, {
       html,
       ydoc,
       editorsId,
