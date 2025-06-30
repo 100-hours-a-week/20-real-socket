@@ -160,7 +160,11 @@ const pingTimeout = 30000
 export const setupWSConnection = (
   conn: WebSocket,
   req: IncomingMessage,
-  { docName = (req.url || '').slice(1).split('?')[0], gc = true }: { docName?: string; gc?: boolean } = {}
+  { docName = (() => {
+    const path = req.url || '';
+    const segments = path.split('/').filter(Boolean);
+    return segments[segments.length - 1] || '';
+  })(), gc = true }: { docName?: string; gc?: boolean } = {}
 ) => {
   conn.binaryType = 'arraybuffer'
   const doc = getYDoc(docName, gc)
