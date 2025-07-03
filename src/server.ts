@@ -37,7 +37,7 @@ wss.on('connection', setupWSConnection)
 server.on('upgrade', (request, socket, head) => {
   const cookieHeader = request.headers.cookie
   const cookies = parseCookies(cookieHeader || '')
-  const token = cookies['ACCESS_TOKEN']
+  const token = cookies['ACCESS_TOKEN_V2']
 
   if (!token) {
     // 토큰이 없으면 401 응답 후 연결 거절
