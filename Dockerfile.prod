@@ -1,0 +1,39 @@
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy source code and environment files
+COPY . .
+
+# Copy production environment file
+COPY env.production .env.production
+
+# Build the application
+RUN npm run build
+
+# Production stage
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install only production dependencies
+RUN npm ci --only=production
+
+# Copy built application from builder stage
+COPY --from=builder /app/dist ./dist
+
+# Copy production environment file
+COPY env.production .env.production
+
+EXPOSE 3002
+
+CMD ["npm", "run", "start"] 
