@@ -7,7 +7,7 @@ import * as Y from 'yjs'
 export const callbackHandler = (doc: WSSharedDoc, docId: string, userIds: number[]): void => {
   const fragment = doc.getXmlFragment('default')
   const html = fragment.toString()
-  const update = btoa(String.fromCharCode(...Y.encodeStateAsUpdate(doc)))
+  const update = Buffer.from(Y.encodeStateAsUpdate(doc)).toString("base64");
 
   putWiki({id: parseInt(docId), html, ydoc: update, editorsId: userIds })
 }
